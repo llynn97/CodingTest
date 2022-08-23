@@ -1,98 +1,101 @@
 #include <iostream>
-#include <vector>
+#include <string>
+#include <algorithm>
 #include <queue>
-#include <cmath>
+#include <math.h>
+
 using namespace std;
-bool nochange; //인 구 이 동 이 있 는 지 확 인
-int n, l, r;
 
-int map[51][51];
-bool check[51][51];
+int n, r, l;
+int map[50][50];
+int check[50][50];
 
-int ny[4] = { 0,0,1,-1 };
-int nx[4] = { 1,-1,0,0 };
+int dx[4] = { -1,0,1,0 };
+int dy[4] = { 0,1,0,-1 };
 
-void bfs(int i, int j) {
-	int sc = 1;
-	int sum = map[i][j];
+int cnt = 0; // 인구 차이가 l 이상 r 이하 난 횟수
+int ans;
+void init() {
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < n; j++) {
+			check[i][j] = 0;
+		}
+	}
+}
+
+void bfs(int x, int y) {
+	int tx = x;
+	int ty = y;
 	queue <pair<int, int>> q;
-	queue <pair<int, int>> q2; //다 시 인 구 조 정 할 좌 표 넣 음
-	q.push(make_pair(i, j));
-
+	q.push(make_pair(x, y));
+	check[x][y] = 1;
+	int num = 1;
+	int sum = map[x][y];
 	while (!q.empty()) {
 		int x = q.front().first;
 		int y = q.front().second;
-		//	cout<<map[x][y]<<"\n";
-		q2.push(make_pair(x, y));
 		q.pop();
 		for (int i = 0; i < 4; i++) {
-			int dy = y + ny[i];
-			int dx = x + nx[i];
-			if (dy < n && dx < n && dy >= 0 && dx >= 0) {
-				if (!check[dx][dy] && (abs(map[x][y] - map[dx][dy]) >= l && abs(map[x][y] - map[dx][dy]) <= r)) {
-					check[dx][dy] = true;
-					sc++;
-					//	cout<<map[dx][dy]<<" ";
-					sum += map[dx][dy];
-					q.push(make_pair(dx, dy));
-
+			int nx = x + dx[i];
+			int ny = y + dy[i];
+			if (nx >= 0 && ny >= 0 && nx < n && ny < n && check[nx][ny] == 0) {
+				if (abs(map[x][y] - map[nx][ny]) >= l && abs(map[x][y] - map[nx][ny]) <= r) {
+					check[nx][ny] = 1;
+					q.push(make_pair(nx, ny));
+					num++;
+					sum += map[nx][ny];
 				}
 			}
 		}
+     }
+	if (num == 1) { //인구 이동이 없음
+		check[tx][ty] = 2;
 	}
-	if (sc >= 2) {
-		//cout<<sum<<" "<<sc<<"\n";
-		int change = sum / sc;
-		while (!q2.empty()) {
-			int x1 = q2.front().first;
-			int y1 = q2.front().second;
-			//	cout<<x1<<","<<y1<<"\n";
-			q2.pop();
-			map[x1][y1] = change;
-
-			nochange = true;
-
-
+	else {
+		int popu = sum / num;
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < n; j++) {
+				if (check[i][j] == 1) {
+					
+					check[i][j] = 2;
+					map[i][j] = popu;
+				}
+			}
 		}
+		cnt++;
+
 	}
-	/*for(int i=0; i<n; i++){
-		for(int j=0; j<n; j++){
-			cout<<map[i][j]<<" ";
-		}
-		cout<<"\n";
-	}*/
 }
 
-int main() {
+
+
+int main(void) {
 	cin >> n >> l >> r;
 	for (int i = 0; i < n; i++) {
 		for (int j = 0; j < n; j++) {
 			cin >> map[i][j];
 		}
 	}
-	int ans = 0;
-	nochange = true;
-	while (nochange == true) {
-		nochange = false;
+	
+
+	while (true) {
+		
+		init();
+		cnt = 0;
 		for (int i = 0; i < n; i++) {
 			for (int j = 0; j < n; j++) {
-				check[i][j] = false;
-			}
-		}
-		for (int i = 0; i < n; i++) {
-			for (int j = 0; j < n; j++) {
-				if (check[i][j] == false) {
-					check[i][j] = true;
+				if (check[i][j] == 0) {
 					bfs(i, j);
 				}
 			}
 		}
-		if (nochange == true) {
-			ans++;
+		if (cnt == 0) {
+			break;
 		}
+		ans++;
+		
+
 	}
+
 	cout << ans;
-
-
-	return 0;
 }
