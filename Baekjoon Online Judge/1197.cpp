@@ -9,7 +9,7 @@ using namespace std;
 int v, e;
 int a, b, c = 0;
 int ans = 0;
-vector<pair<int, int>> node[10001]; //<end,가중치> [시작점]
+vector<pair<int, int>> node[10001]; 
 bool check[10001];
 //1->2,3
 
