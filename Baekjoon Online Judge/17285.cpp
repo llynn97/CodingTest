@@ -12,7 +12,7 @@ bool visit[4][30]; //이미 윷이 있는지
 bool check[4][30]; // 경로가 겹치는 점
 int ans = 0;
 vector < pair<pair<int, int>, pair<int, bool>>> yut[4]; //파란색 원의 번호, 윷 위치, 윷 점수, 윷이 도착했는지 
-bool selectCircle;
+
 void init() {
 	moveNum[0] = 21; //파란색을 건너지 않는 경우
 	moveNum[1] = 13; //파란색10을 지날때
@@ -55,13 +55,14 @@ void init() {
 	for (int i = 1; i <= 15; i++) {
 		map[3][i] = map[0][i];
 	}
+	
 }
-vector < pair<pair<int, int>, pair<int, bool>>> getState(int idx, int idx2) {
-	vector < pair<pair<int, int>, pair<int, bool>>> v;
+vector < pair<pair<pair<int, int>, pair<int, bool>>,bool>> getState(int idx, int idx2) {
+	vector < pair<pair<pair<int, int>, pair<int, bool>>, bool>> v;
 	int prev = yut[idx].front().first.second; //윷 현재 위치
 	int next = yut[idx].front().first.second + order[idx2]; //이동하려는 위치
 	int startCircle = yut[idx].front().first.first; //시작한 파란색 원 번호
-	selectCircle = false; // 이동해서 파란색 원인지
+	bool selectCircle = false; // 이동해서 파란색 원인지
 	bool finish = false; //도착했는지 여부
 	if (startCircle == 0) { //아직 파란색에서 시작하지 않았을 때
 		if (prev == 5 || prev == 10 || prev == 15) { //파란색에서 시작했을 때
@@ -72,7 +73,7 @@ vector < pair<pair<int, int>, pair<int, bool>>> getState(int idx, int idx2) {
 	if (next >= moveNum[startCircle]) {
 		finish = true;
 	}
-	v.push_back(make_pair(make_pair(prev, next), make_pair(startCircle, finish)));
+	v.push_back(make_pair(make_pair(make_pair(prev, next), make_pair(startCircle, finish)),selectCircle));
 	return v;
 	
 }
@@ -115,7 +116,7 @@ bool checkVisit2(int circle, int pos) { // 경로에 겹치는 점에 다른 윷이 존재하는
 			return false;
 		}
 		if (pos == 22) {
-			if (visit[0][22] == true) {
+			if (visit[0][20] == true) {
 				return false;
 			}
 		}
@@ -124,47 +125,65 @@ bool checkVisit2(int circle, int pos) { // 경로에 겹치는 점에 다른 윷이 존재하는
 }
 
 
-bool checkVisit(vector < pair<pair<int, int>, pair<int, bool>>> v, int idx) { //윷이 움직일 수 있는지
-	if (check[v.front().second.first][v.front().first.second] == true) { //점을 지나는 경로가 여러개 일때 
+bool checkVisit(vector < pair<pair<pair<int, int>, pair<int, bool>>, bool>> v, int idx) { //윷이 움직일 수 있는지
+	if (check[v.front().first.second.first][v.front().first.first.second] == true) { //점을 지나는 경로가 여러개 일때 
 
-		if (checkVisit2(v.front().second.first, v.front().first.second) == false) { // 윷이 있는지 확인
+		if (checkVisit2(v.front().first.second.first, v.front().first.first.second) == false) { // 윷이 있는지 확인
+			
 			return false;
 		}
 	}
-	if (visit[v.front().second.first][v.front().first.second] == true) {
+	if (visit[v.front().first.second.first][v.front().first.first.second] == true) {
+		
 		return false;
 	}
+	
 	return true;
 	
 }
 
-void moveYut(vector < pair<pair<int, int>, pair<int, bool>>> v,int idx ,bool flag) {
+void moveYut(vector < pair<pair<pair<int, int>, pair<int, bool>>, bool>> v,int idx ,bool flag) {
 	if (flag == true) {
-		if (v.front().second.second == true) { // 움직여서 윷이 도착했을 때
-			visit[v.front().second.first][v.front().first.first] = false; //현재 좌표 방문 체크 해제
-			yut[idx].front().first.second = v.front().first.second;
+		if (v.front().first.second.second == true) { // 움직여서 윷이 도착했을 때
+			visit[v.front().first.second.first][v.front().first.first.first] = false; //현재 좌표 방문 체크 해제
+			yut[idx].front().first.second = v.front().first.first.second;
 			yut[idx].front().second.second = true; //도착완료
 		}
 		else {
-			if (selectCircle == true) { // 이번에 움직여서 파란색 점에서 이동 시작일 경우
-				yut[idx].front().first.first = v.front().second.first;
-				visit[0][v.front().first.first] = false;
+			if (v.front().second == true) { // 이번에 움직여서 파란색 점에서 이동 시작일 경우
+				yut[idx].front().first.first = v.front().first.second.first;
+				visit[0][v.front().first.first.first] = false;
 			}
 			else {
-				visit[yut[idx].front().first.first][v.front().first.first] = false;
+				visit[yut[idx].front().first.first][v.front().first.first.first] = false;
 			}
-			visit[yut[idx].front().first.first][v.front().first.second] = true;
-			yut[idx].front().first.second = v.front().first.second;
-			yut[idx].front().second.first = yut[idx].front().second.first + map[yut[idx].front().first.first][v.front().first.second];
+			visit[yut[idx].front().first.first][v.front().first.first.second] = true;
+			yut[idx].front().first.second = v.front().first.first.second;
+			yut[idx].front().second.first = yut[idx].front().second.first + map[yut[idx].front().first.first][v.front().first.first.second];
 		}
 	}
 	else { // 실행 취소
-		if (selectCircle == true) {
-			visit[0][v.front().first.first] = true;
-			visit[yut[idx].front().first.first][v.front().first.second] = false;
-			yut[idx].front().first.second = v.front().first.first;
-			yut[idx].front().second.first = yut[idx].front().second.first - map[yut[idx].front().first.first][v.front().first.second];
+		if (v.front().first.second.second == true) { //도착했으면
+			visit[v.front().first.second.first][v.front().first.first.first] = true;
+			yut[idx].front().first.second = v.front().first.first.first;
+			yut[idx].front().second.second = false;
 		}
+		else {
+			if (v.front().second == true) {
+				visit[0][v.front().first.first.first] = true;
+				visit[yut[idx].front().first.first][v.front().first.first.second] = false;
+				yut[idx].front().first.second = v.front().first.first.first;
+				yut[idx].front().second.first = yut[idx].front().second.first - map[yut[idx].front().first.first][v.front().first.first.second];
+				yut[idx].front().first.first = 0;
+			}
+			else {
+				visit[yut[idx].front().first.first][v.front().first.first.first] = true;
+				visit[yut[idx].front().first.first][v.front().first.first.second] = true;
+				yut[idx].front().first.second = v.front().first.first.first;
+				yut[idx].front().second.first = yut[idx].front().second.first - map[yut[idx].front().first.first][v.front().first.first.second];
+			}
+		}
+		
 	}
 	
 }
@@ -186,7 +205,7 @@ void dfs(int cnt) {
 		if (yut[i].front().second.second == true) { //윷이 이미 도착했으면 넘어감
 			continue;
 		}
-		vector < pair<pair<int, int>, pair<int, bool>>> v=getState(i, cnt);
+		vector < pair<pair<pair<int, int>, pair<int, bool>>,bool>> v=getState(i, cnt);
 		if (checkVisit(v, i) == false) {
 			continue;
 		}
@@ -206,3 +225,4 @@ int main(void) {
 	
 
 }
+
